@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python Lab | Classroom IDE</title>
+<style>
+:root{color-scheme:dark;--bg:#0a1220;--panel:#111e30;--panel2:#18283e;--stroke:#2a3d56;--txt:#e9f0f8;--muted:#a0b3cb;--blue:#4da6ff;--green:#4cddaa;--red:#ff7d8c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px system-ui,-apple-system,'Segoe UI',sans-serif}button,select,textarea,input{font:inherit}button,select{border:1px solid var(--stroke);border-radius:8px;background:#213550;color:var(--txt);padding:9px 13px;cursor:pointer}button:hover,select:hover{background:#2c4667}button:disabled{cursor:not-allowed;opacity:.48}.primary{background:#187b55;border-color:#249d70;font-weight:700}.primary:hover{background:#229b6b}.stop{background:#78303b;border-color:#a94653}#examples{background:#1e6d4d;border-color:#2e9a6e;color:#effff7;font-weight:700;padding-left:14px}#examples:hover{background:#27855e}#examples option{background:#132239;color:var(--txt);font-weight:400}header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:15px 22px;border-bottom:1px solid var(--stroke)}h1{font-size:20px;margin:0;letter-spacing:-.5px}.sub{font-size:12px;color:var(--muted)}.grow{flex:1}.status{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:13px}.dot{height:9px;width:9px;border-radius:50%;background:#e8bd54}.ready .dot{background:var(--green)}.bad .dot{background:var(--red)}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 22px;border-bottom:1px solid var(--stroke)}.hint{color:var(--muted);font-size:12px}.workspace{display:grid;grid-template-columns:minmax(350px,1.08fr) minmax(320px,1fr);gap:12px;padding:12px;height:calc(100vh - 166px);min-height:500px}.panel{min-width:0;min-height:0;background:var(--panel);border:1px solid var(--stroke);border-radius:13px;overflow:hidden;display:flex;flex-direction:column}.panel-title{padding:12px 15px;background:var(--panel2);border-bottom:1px solid var(--stroke);display:flex;align-items:center;gap:9px;font-weight:700}.tag{font-size:11px;font-weight:400;color:#abc3db}.editor-wrap{display:flex;flex:1;min-height:0;overflow:hidden;background:#0d1726}.numbers{width:48px;min-width:48px;padding:16px 8px 16px 0;text-align:right;white-space:pre;overflow:hidden;color:#627e9f;font:14px/23px ui-monospace,SFMono-Regular,Consolas,monospace;border-right:1px solid #26364a;user-select:none}.code{background:transparent;color:#e6efff;border:0;outline:0;resize:none;flex:1;width:100%;height:100%;padding:16px;white-space:pre;overflow:auto;tab-size:4;font:14px/23px ui-monospace,SFMono-Regular,Consolas,monospace;caret-color:#7dcaff}.output{flex:1;min-height:160px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:16px;font:14px/23px ui-monospace,SFMono-Regular,Consolas,monospace;color:#e1ebf7}.out-error{color:#ff9aa5}.out-input{color:#8bbefa}.out-info{color:#92d9b6}.inputs{border-top:1px solid var(--stroke);padding:12px 14px;background:#132239}.inputs label{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:13px;margin-bottom:8px}.inputs textarea{width:100%;min-height:84px;max-height:170px;resize:vertical;border:1px solid var(--stroke);border-radius:8px;background:#0c192a;color:var(--txt);padding:9px 11px;font:13px/20px ui-monospace,Consolas,monospace}.foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid var(--stroke);padding:10px 15px;font-size:12px;color:var(--muted)}.file{display:none}kbd{background:#213550;border-radius:4px;padding:2px 5px}#runTime{font-variant-numeric:tabular-nums}@media(max-width:800px){.workspace{grid-template-columns:1fr;height:auto}.panel{min-height:350px}.editor-wrap{height:390px;flex:none}.output{height:260px;flex:none}header,.toolbar{padding-left:12px;padding-right:12px}}
+
+/* Live Python syntax highlighting, precisely aligned with the editable textarea. */
+.code-area{position:relative;flex:1;min-width:0;min-height:0;overflow:hidden}
+.syntax-view{position:absolute;inset:0;overflow:hidden;pointer-events:none;color:#e6efff}
+.syntax-content{margin:0;padding:16px;white-space:pre;tab-size:4;width:max-content;min-width:100%;font:14px/23px ui-monospace,SFMono-Regular,Consolas,monospace}
+.code-area .code{position:absolute;inset:0;z-index:1;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#7dcaff;overflow:auto}
+.code-area .code::selection{background:rgba(93,163,245,.34);-webkit-text-fill-color:transparent}
+.tok-print{color:#cf9aff}.tok-keyword{color:#ffaf60}.tok-string{color:#8dde9c}.tok-comment{color:#ff7888}.tok-number{color:#e9c27b}.tok-builtin{color:#80bfff}.tok-decorator{color:#e9bbfb}
+
+/* Helping Hand examples are reference-only and never replace pupil code. */
+.editor-stack{display:flex;flex-direction:column;min-width:0;min-height:0;gap:12px}
+.editor-stack>.panel{flex:1;min-height:0}
+.help-panel{display:none;flex:0 0 38%;min-height:165px;border:2px solid #39b878;background:#0e241e;border-radius:13px;overflow:hidden;flex-direction:column}
+.help-panel.visible{display:flex}
+.help-heading{background:#194b36;color:#e6fff0;padding:10px 14px;display:flex;align-items:center;gap:10px;font-weight:700}
+.help-heading .grow{flex:1}
+.help-close{padding:3px 9px;background:#26543f;color:white;border-color:#4aab79;font-size:18px}
+.help-note{padding:7px 14px 0;color:#aadabc;font-size:12px}
+.help-code{overflow:auto;flex:1;margin:0;padding:12px 14px;color:#dffbe9;white-space:pre;tab-size:4;font:14px/22px ui-monospace,SFMono-Regular,Consolas,monospace}
+@media(max-width:800px){.editor-stack>.panel{min-height:350px}.help-panel.visible{flex:none;height:255px}}
+
+/* Classroom-friendly diagnostics */
+.error-card{margin:8px 0 12px;border:2px solid #eead55;border-radius:11px;background:#292519;padding:14px;white-space:normal;font:14px/1.5 system-ui,sans-serif;color:#fff2db}
+.error-card h3{margin:0 0 8px;font-size:17px;color:#ffcd85}.error-card p{margin:7px 0}.error-card code{font:13px Consolas,monospace;color:#acdfae}.error-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.error-actions button{background:#276748;border-color:#3ba36e;color:white;font-weight:650}.error-actions button.secondary{background:#283c54;border-color:#425e7c}.error-card details{margin-top:12px;color:#d7dce5}.error-card pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.45 Consolas,monospace;color:#ffb3ba}.error-line{display:inline-block;background:#684027;border-radius:4px;padding:2px 7px}
+.live-input-panel{display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:12px;margin-top:8px;background:#183a31;border:1px solid #42a77e;border-radius:9px;white-space:normal}.live-input-panel label{width:100%;color:#b4f9d4;font-weight:700}.live-input-panel input{min-width:170px;flex:1;background:#0b1927;border:1px solid #44a27c;border-radius:7px;padding:9px;color:#fff}.live-input-panel button{padding:9px 14px}
+
+.variable-chip-overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
+.flying-chip,.landing-chip{position:fixed;padding:6px 10px;border-radius:999px;background:#39b980;color:#fff;font:700 13px/1.2 system-ui,-apple-system,'Segoe UI',sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.28);white-space:nowrap;z-index:10000;pointer-events:none}
+.landing-chip{position:absolute;background:#2c8d64;box-shadow:0 3px 12px rgba(0,0,0,.22);z-index:5}
+.code-area.highlight-target{outline:2px solid rgba(86,214,154,.45);outline-offset:-2px}
+.variable-target-label{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#245742;color:#c5ffd9;font-size:12px;font-weight:700}
+
+
+.variable-memory{border:1px solid #35a979;border-radius:12px;background:#0c2924;padding:10px 14px;color:#e5fff0}
+.variable-memory h3{font-size:13px;margin:0 0 8px;color:#95f1be}
+.variable-memory-list{display:flex;flex-wrap:wrap;gap:8px}
+.memory-item{border:1px solid #398e69;border-radius:8px;background:#174737;padding:7px 11px;font:13px ui-monospace,Consolas,monospace;color:#f5fff9}
+.memory-item strong{color:#b2f6cc}
+@media(prefers-reduced-motion:reduce){.flying-chip,.landing-chip{animation:none!important;transition:none!important}}
+
+/* Read-only variable labels aligned with their assignment lines. */
+.var-live-label{position:absolute;z-index:6;pointer-events:none;border:1px solid #3dbe86;background:#164c3b;color:#ddffec;border-radius:6px;padding:2px 7px;font:600 12px/17px ui-monospace,Consolas,monospace;white-space:nowrap;max-width:240px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 9px #0005}
+.var-live-label.updated{animation:variablePulse .5s ease}
+@keyframes variablePulse{0%{background:#3ba16f;transform:scale(1.08)}100%{background:#164c3b;transform:scale(1)}}
+
+.list-visuals{display:grid;gap:10px;margin-top:10px}
+.list-card{border:1px solid #368b68;background:#0c2923;border-radius:9px;padding:10px}
+.list-heading{color:#c9ffe2;font-weight:700;font:700 13px system-ui,sans-serif;margin-bottom:9px}
+.list-cells{display:flex;gap:5px;flex-wrap:wrap}
+.list-cell{border:1px solid #49886f;border-radius:7px;min-width:68px;background:#142d2b;overflow:hidden;text-align:center;font:13px/18px ui-monospace,Consolas,monospace}
+.list-index{display:block;background:#24493e;color:#b5daca;font-size:11px;padding:3px 8px}
+.list-value{display:block;color:white;padding:7px 9px;overflow-wrap:anywhere}
+.list-cell.latest{border-color:#5befa3;box-shadow:0 0 0 2px #22835280;animation:variablePulse .55s ease}
+.list-description{margin-top:7px;color:#b1ddc7;font-size:12px}
+
+/* Clean classroom layout: keep coding at the centre, reveal teaching aids on demand. */
+.workspace{height:calc(100dvh - 126px);min-height:500px}
+.editor-stack{gap:8px}
+.editor-stack>.panel{min-height:240px}
+.variable-memory{padding:0;flex:none;max-height:245px;overflow:auto;border-color:#337d62}
+.variable-memory summary{cursor:pointer;list-style:none;padding:11px 14px;font-weight:700;color:#aff2cf;user-select:none;background:#143e31}
+.variable-memory summary::-webkit-details-marker{display:none}
+.variable-memory summary:before{content:'▸';margin-right:9px}
+.variable-memory[open] summary:before{content:'▾'}
+.variable-memory-body{padding:10px 13px;max-height:193px;overflow:auto}
+.variable-memory:not([open]) .variable-memory-body{display:none}
+.explorer-sub{font-weight:400;font-size:12px;color:#9bbeb1}
+.empty-explorer{font-size:12px;color:#afc9bb}
+.help-panel.visible{flex:0 0 auto;height:200px;min-height:0}
+.visual-switch{display:inline-flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid #3d715e;border-radius:8px;color:#c6f2d8;background:#17382e;font-size:13px;cursor:pointer;white-space:nowrap}
+.visual-switch input{accent-color:#38b77b;width:16px;height:16px;margin:0}
+.visual-off .var-live-label,.visual-off .flying-chip,.visual-off .landing-chip{display:none!important}
+.visual-off #variableMemory{display:none}
+.output{min-height:0}
+@media(max-width:800px){.workspace{height:auto}.editor-stack>.panel{min-height:420px}.help-panel.visible{height:200px}.variable-memory{max-height:280px}}
+
+.flow-overlay{position:fixed;inset:0;pointer-events:none;z-index:15000;overflow:visible}
+.flow-line{stroke:#6fd0ff;stroke-width:3;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(111,208,255,.35))}
+.print-arrow{position:fixed;z-index:16000;pointer-events:none;color:#9fe7ff;background:#153c4d;border:1px solid #64c5ea;border-radius:999px;padding:4px 8px;font:700 12px/1 system-ui,-apple-system,'Segoe UI',sans-serif;box-shadow:0 5px 16px rgba(0,0,0,.28)}
+.output-flash{background:rgba(111,208,255,.12);border-radius:4px;box-shadow:0 0 0 1px rgba(111,208,255,.22) inset}
+@keyframes outputPulse{0%{background:rgba(111,208,255,.35)}100%{background:rgba(111,208,255,.12)}}
+.print-off .flow-overlay,.print-off .print-arrow{display:none!important}
+
+</style>
+</head>
+<body>
+<svg id="printFlowSvg" class="flow-overlay" aria-hidden="true"></svg>
+<header><div style="font-size:29px">🐍</div><div><h1>Python Lab</h1><div class="sub">A simple Python coding space for the classroom</div></div><div class="grow"></div><div class="status" id="status"><span class="dot"></span><span id="statusText">Loading Python…</span></div></header>
+<div class="toolbar"><button class="primary" id="run" disabled>▶ Run code</button><button class="stop" id="stop" disabled>■ Stop</button><button id="clear">Clear output</button><span style="width:1px;height:24px;background:var(--stroke)"></span><select id="examples" aria-label="Helping Hand examples"><option value="">🤚 Helping Hand</option><option value="hello">Hello world</option><option value="input">Inputs (Variables)</option><option value="decision">Decisions (IF)</option><option value="loop">For loop</option><option value="while">While loop</option><option value="function">Functions</option><option value="list">Lists</option><option value="error">Debug an error</option></select><button id="new">New</button><button id="open">Open .py</button><button id="save">Save .py</button><label class="visual-switch"><input type="checkbox" id="visualToggle" checked> Visualise Variables</label><label class="visual-switch"><input type="checkbox" id="printFlowToggle"> Show print flow</label><label class="visual-switch"><input type="checkbox" id="inputFlowToggle"> Show input flow</label><input class="file" id="upload" type="file" accept=".py,.txt,text/plain"><div class="grow"></div><span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run</span></div>
+<div class="workspace"><div class="editor-stack"><section class="panel"><div class="panel-title">✎ Code editor <span class="tag" id="fileNameLabel">main.py</span><div class="grow"></div><span class="tag" id="saved">Autosaved locally</span></div><div class="editor-wrap"><div class="numbers" id="numbers" aria-hidden="true">1</div><div class="code-area" id="codeArea"><div class="syntax-view" aria-hidden="true"><pre class="syntax-content" id="syntax"></pre></div><div class="variable-chip-overlay" id="chipOverlay" aria-hidden="true"></div><textarea id="code" class="code" spellcheck="false" aria-label="Python code editor" autocomplete="off" autocapitalize="off" wrap="off"></textarea></div></div><div class="foot"><span>Python • 4-space indentation</span><span id="position">Line 1, Column 1</span></div></section>
+<details class="variable-memory" id="variableMemory" aria-label="Variable Explorer"><summary>📦 Variable Explorer <span class="explorer-sub">— view variables and indexed lists</span></summary><div class="variable-memory-body"><div class="variable-memory-list" id="variableMemoryList"><span class="empty-explorer">Run a program to see its values here.</span></div><div class="list-visuals" id="listVisuals"></div></div></details>
+<section class="help-panel" id="helpPanel" aria-label="Helping Hand example code"><div class="help-heading"><span>🤚 Helping Hand — <span id="helpTitle">Example</span></span><div class="grow"></div><button type="button" class="help-close" id="helpClose" aria-label="Close Helping Hand">×</button></div><div class="help-note">Reference only — your own code stays exactly as it is.</div><pre class="help-code" id="helpCode"></pre></section></div>
+<section class="panel"><div class="panel-title">▣ Output / errors <div class="grow"></div><span class="tag" id="runTime">Ready to run</span></div><div class="output" id="output" role="log" aria-live="polite"><span class="out-info">Python runtime is starting…</span></div><textarea id="inputs" class="file" aria-hidden="true" tabindex="-1"></textarea><div class="foot"><span>Runs Python in your browser</span><span>No pupil account needed</span></div></section></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),editor=$('code'),output=$('output');
+const samples={hello:'print("Hello, world!")\nprint("Welcome to Python Lab!")',input:'# Store the answer in a variable\nname = input("What is your name? ")\n\n# Display the value stored in the variable\nprint("Hello", name)\n\n# Variables can also store numbers\nage = int(input("How old are you? "))\nprint("You are", age, "years old")',decision:'# IF statements make decisions\nage = 14\n\nif age >= 13:\n    print("You are a teenager")\nelse:\n    print("You are under 13")',loop:'for number in range(1, 11):\n    print(number, "squared is", number ** 2)',while:'count = 5\nwhile count > 0:\n    print(count)\n    count -= 1\nprint("Blast off!")',function:'def greet(name):\n    return "Hello, " + name\n\nmessage = greet("Alex")\nprint(message)',list:'scores = [12, 18, 14, 20]\nprint("Scores:", scores)\nprint("Highest:", max(scores))\nprint("Average:", sum(scores) / len(scores))',error:'score = 10\nprint("Your score is " + score)\n# Can you fix the TypeError?'};
+const filenameStorage='python-lab-filename-v1';
+const namedCodeStorage='python-lab-named-code-v39';
+let lastNamedCode=null;
+try{lastNamedCode=localStorage.getItem(namedCodeStorage)}catch{}
+let currentFileName='main.py';
+try{const savedName=localStorage.getItem(filenameStorage);if(savedName)currentFileName=savedName}catch{}
+function setFileName(name){
+  let clean=String(name||'').trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_');
+  if(!clean)clean='main.py';
+  if(!/\.py$/i.test(clean))clean+='.py';
+  currentFileName=clean;
+  $('fileNameLabel').textContent=clean;
+  try{localStorage.setItem(filenameStorage,clean)}catch{}
+}
+setFileName(currentFileName);
+const storage='python-lab-code-v1';try{editor.value=localStorage.getItem(storage)??samples.hello}catch{editor.value=samples.hello}
+// Tokenise strings/comments first so keywords inside them keep the right colour.
+const pythonTokens = /(?:[rRuUbBfF]{0,2})(?:\"\"\"[\s\S]*?(?:\"\"\"|$)|\'\'\'[\s\S]*?(?:\'\'\'|$)|\"(?:\\[\s\S]|[^\"\\])*?(?:\"|$)|\'(?:\\[\s\S]|[^\'\\])*?(?:\'|$))|#[^\n]*|@[A-Za-z_]\w*|\b(?:print|for|while|if|elif|else|def|return|in|not|and|or|break|continue|pass|class|try|except|finally|raise|with|as|import|from|lambda|yield|async|await|global|nonlocal|assert|del|is|match|case|True|False|None|input|range|int|float|str|bool|len|list|dict|set|tuple|sum|max|min|sorted|enumerate|open|abs|round|type)\b|\b\d+(?:\.\d+)?\b/g;
+const keywords = new Set('for while if elif else def return in not and or break continue pass class try except finally raise with as import from lambda yield async await global nonlocal assert del is match case True False None'.split(' '));
+const builtins = new Set('input range int float str bool len list dict set tuple sum max min sorted enumerate open abs round type'.split(' '));
+const escapeCode = v => v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function highlight(){
+  const source=editor.value;
+  let html='',last=0;
+  pythonTokens.lastIndex=0;
+  for(const match of source.matchAll(pythonTokens)){
+    html+=escapeCode(source.slice(last,match.index));
+    const token=match[0];
+    const kind=token.startsWith('#')?'comment':/^(?:[rRuUbBfF]{0,2})(?:\"|\')/.test(token)?'string':token.startsWith('@')?'decorator':token==='print'?'print':keywords.has(token)?'keyword':builtins.has(token)?'builtin':/^\d/.test(token)?'number':'';
+    html+=kind?`<span class="tok-${kind}">${escapeCode(token)}</span>`:escapeCode(token);
+    last=match.index+token.length;
+  }
+  html+=escapeCode(source.slice(last));
+  $('syntax').innerHTML=html+'\n';
+  syncHighlightScroll();
+}
+function syncHighlightScroll(){ $('syntax').style.transform=`translate(${-editor.scrollLeft}px, ${-editor.scrollTop}px)`; }
+function lines(){const n=editor.value.split('\n').length;$('numbers').textContent=Array.from({length:n},(_,i)=>i+1).join('\n')}
+function cursor(){const start=editor.selectionStart,before=editor.value.slice(0,start),row=before.split('\n');$('position').textContent=`Line ${row.length}, Column ${row.at(-1).length+1}`}
+function changed(){clearVisualsForCodeChange();lines();cursor();highlight();try{localStorage.setItem(storage,editor.value);$('saved').textContent='Autosaved locally'}catch{$('saved').textContent='Local save unavailable'}}
+// Word processors and websites often paste typographic quotes that Python rejects.
+// Convert them in the editor (not only in the executed copy) so pupils see the correction.
+function straightenQuotes(value){
+  return value.replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+              .replace(/[\u201C\u201D\u201E\u201F]/g, '"');
+}
+function normaliseEditorQuotes(){
+  const original=editor.value, corrected=straightenQuotes(original);
+  if(corrected===original)return false;
+  const start=editor.selectionStart,end=editor.selectionEnd;
+  editor.value=corrected;
+  editor.setSelectionRange(start,end);
+  changed();
+  return true;
+}
+editor.addEventListener('paste',e=>{
+  const clipboard=e.clipboardData?.getData('text/plain');
+  if(!clipboard || clipboard===straightenQuotes(clipboard))return;
+  e.preventDefault();
+  editor.setRangeText(straightenQuotes(clipboard),editor.selectionStart,editor.selectionEnd,'end');
+  changed();
+});
+editor.addEventListener('input',changed);editor.addEventListener('click',cursor);editor.addEventListener('keyup',cursor);editor.addEventListener('scroll',()=>{$('numbers').scrollTop=editor.scrollTop;syncHighlightScroll();updateVariableLabels()});
+editor.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const a=editor.selectionStart,b=editor.selectionEnd;if(e.shiftKey){const line=editor.value.lastIndexOf('\n',a-1)+1;if(editor.value.slice(line,line+4)==='    '){editor.setRangeText('',line,line+4,'preserve');editor.selectionStart=Math.max(line,a-4);editor.selectionEnd=Math.max(line,b-4)}}else{editor.setRangeText('    ',a,b,'end')}changed()}else if(e.key==='Enter'&&!e.ctrlKey){const a=editor.selectionStart,b=editor.selectionEnd,line=editor.value.slice(editor.value.lastIndexOf('\n',a-1)+1,a),indent=(line.match(/^\s*/)||[''])[0],extra=line.trimEnd().endsWith(':')?'    ':'';e.preventDefault();editor.setRangeText('\n'+indent+extra,a,b,'end');changed()}});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
+const setStatus=(message,cls='')=>{$('statusText').textContent=message;$('status').className='status '+cls};
+function append(text,cls=''){const s=document.createElement('span');s.className=cls;s.textContent=text;output.append(s);output.scrollTop=output.scrollHeight;return s}
+const workerSource=String.raw`
+const SOURCES=[
+  {name:'jsDelivr',base:'https://cdn.jsdelivr.net/pyodide/v0.27.7/full/'},
+  {name:'unpkg',base:'https://unpkg.com/pyodide@0.27.7/'}
+];
+let py=null;
+function errorDetails(err){
+  if(typeof err==='string')return err;
+  if(err && typeof err==='object'){
+    const bits=[err.name,err.message,err.stack,err.reason&&String(err.reason)].filter(Boolean);
+    if(bits.length)return [...new Set(bits)].join(' | ').slice(0,1500);
+    try{return JSON.stringify(err)}catch(_){return String(err)}
+  }
+  return String(err);
+}
+async function boot(){
+  const failures=[];
+  for(const source of SOURCES){
+    postMessage({type:'loadingSource',name:source.name});
+    try{
+      importScripts(source.base+'pyodide.js');
+      py=await loadPyodide({indexURL:source.base});
+      postMessage({type:'ready'});
+      return;
+    }catch(err){ failures.push(source.name+': '+errorDetails(err)); }
+  }
+  postMessage({type:'bootError',text:failures.join('\n\n')});
+}
+boot();
+onmessage=async({data})=>{if(data.type!=='run'||!py)return;
+const code=data.code,answers=data.answers;
+try{
+  py.globals.set('__lab_code',code);
+  py.globals.set('__lab_inputs',answers);
+  py.globals.set('__lab_write',(chunk,kind)=>postMessage(String(kind)==='needInput'?{type:'needInput',prompt:String(chunk)}:{type:'output',text:String(chunk),kind:String(kind)}));
+  py.globals.set('__lab_trace',(json)=>postMessage({type:'variableTrace',data:JSON.parse(String(json))}));
+  py.globals.set('__lab_output_trace',(json)=>postMessage({type:'outputTrace',data:JSON.parse(String(json))}));
+  py.globals.set('__lab_diagnostic',(json)=>postMessage({type:'diagnostic',data:JSON.parse(String(json))}));
+  await py.runPythonAsync(__BRIDGE__);
+  postMessage({type:'done'});
+}catch(err){postMessage({type:'error',text:String(err)})}
+};`;
+// Replace the token with Python setup; defined separately to keep the worker readable.
+const pythonBridge=String.raw`
+import sys, builtins, traceback, json, ast
+lab_write = __lab_write  # Avoid Python name-mangling inside the _Stream class.
+class _Stream:
+    def __init__(self, kind): self.kind = kind
+    def write(self, text):
+        if text: lab_write(str(text), self.kind)
+    def flush(self): pass
+old_out, old_err, old_in, old_print = sys.stdout, sys.stderr, builtins.input, builtins.print
+answers = list(__lab_inputs.to_py())
+idx = 0
+class _NeedInput(Exception):
+    pass
+def classroom_input(prompt=''):
+    global idx
+    if idx >= len(answers):
+        lab_write(str(prompt), 'needInput')
+        raise _NeedInput()
+    value = str(answers[idx]); idx += 1
+    if prompt: lab_write(str(prompt), 'input')
+    lab_write(value + '\n', 'input')
+    return value
+def classroom_print(*args, **kwargs):
+    _file = kwargs.get('file', sys.stdout)
+    if _file not in (None, sys.stdout):
+        return old_print(*args, **kwargs)
+    _sep = kwargs.get('sep', ' ')
+    _end = kwargs.get('end', '\n')
+    _flush = kwargs.get('flush', False)
+    try:
+        _line = sys._getframe(1).f_lineno
+    except Exception:
+        _line = None
+    if _line is not None:
+        __lab_output_trace(json.dumps({'line': _line}))
+    lab_write(_sep.join(str(_arg) for _arg in args) + _end, 'normal')
+    if _flush:
+        try: sys.stdout.flush()
+        except Exception: pass
+# Trace the value of simple variables after each Python line executes.
+# Only basic immutable values are displayed; complex objects are not inspected.
+try:
+    _tree = ast.parse(__lab_code)
+    _declarations = {}
+    for _node in ast.walk(_tree):
+        _names = []
+        if isinstance(_node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            _targets = _node.targets if isinstance(_node, ast.Assign) else [_node.target]
+            _names = [t.id for t in _targets if isinstance(t, ast.Name)]
+        elif isinstance(_node, (ast.For, ast.AsyncFor)) and isinstance(_node.target, ast.Name):
+            _names = [_node.target.id]
+        for _name in _names:
+            _declarations.setdefault(_name, _node.lineno)
+except SyntaxError:
+    _declarations = {}
+_trace_last = {}
+_trace_count = 0
+_trace_limit = 1000
+_trace_frame = None
+def _send_values(frame):
+    global _trace_count
+    if _trace_count >= _trace_limit: return
+    for _name, _line in _declarations.items():
+        if _name not in frame.f_locals: continue
+        _value = frame.f_locals[_name]
+        if type(_value) is list:
+            # Copy the contents now: lists change in place when append() is called.
+            # Inspect only short lists of classroom-friendly values.
+            if len(_value) > 60: continue
+            if not all(type(v) in (str, int, float, bool, type(None)) for v in _value): continue
+            _cells = [repr(v)[:65] for v in _value]
+            _display = '[' + ', '.join(_cells) + ']'
+            _signature = json.dumps(_cells)
+            if _trace_last.get(_name) == _signature: continue
+            _trace_last[_name] = _signature
+            _trace_count += 1
+            __lab_trace(json.dumps({'name':_name,'value':_display[:180],'line':_line,'kind':'list','items':_cells}))
+            continue
+        if type(_value) not in (str, int, float, bool, type(None)): continue
+        _display = repr(_value)
+        if len(_display) > 75: _display = _display[:72] + '...'
+        if _trace_last.get(_name) == _display: continue
+        _trace_last[_name] = _display
+        _trace_count += 1
+        __lab_trace(json.dumps({'name':_name,'value':_display,'line':_line}))
+def _trace(frame,event,arg):
+    if frame.f_code.co_filename != 'main.py': return None
+    if event in ('line','return'): _send_values(frame)
+    return _trace
+sys.stdout, sys.stderr = _Stream('normal'), _Stream('error')
+builtins.input = classroom_input
+builtins.print = classroom_print
+try:
+    sys.settrace(_trace)
+    exec(compile(__lab_code, 'main.py', 'exec'), {'__name__':'__main__', '__file__':'main.py'})
+except _NeedInput:
+    pass
+except BaseException as err:
+    frame_list = traceback.extract_tb(err.__traceback__)
+    user_frames = [f for f in frame_list if f.filename == 'main.py']
+    location = user_frames[-1].lineno if user_frames else None
+    if isinstance(err, SyntaxError):
+        location = err.lineno
+    diagnostic = {
+        'name': type(err).__name__, 'message': str(err),
+        'line': location, 'offset': getattr(err, 'offset', None),
+        'raw': ''.join(traceback.format_exception(type(err), err, err.__traceback__))
+    }
+    __lab_diagnostic(json.dumps(diagnostic))
+finally:
+    sys.settrace(None)
+    sys.stdout, sys.stderr, builtins.input, builtins.print = old_out, old_err, old_in, old_print
+`;
+let worker,ready=false,running=false,started=0,bootTimeout=null;
+let waitingForInput=false,sessionAnswers=[],sessionCode='';
+let currentInputMeta=null;
+const storedValues=new Map();
+const listValues=new Map();
+const inlineValues=new Map();
+let lastEditorText=editor.value;
+let pendingPrintLines=[];
+
+const printConnections=[];
+const inputConnections=[];
+let pendingInputTargets=[];
+function codeLinePoint(line){
+  const rect=$('codeArea').getBoundingClientRect();
+  const source=(sessionCode.split('\n')[line-1]||'');
+  // Anchor at the end of the entire visible code line, never over its text.
+  // The editor has 16px of left padding; add 16px beyond the last character.
+  const endColumn=source.replace(/\s+$/,'').length;
+  return {x:rect.left+16+endColumn*charWidth()+16-editor.scrollLeft,
+          y:rect.top+16+(line-1)*23-editor.scrollTop+11};
+}
+function clearPrintFlow(){
+  printConnections.length=0;
+  inputConnections.length=0;
+  pendingPrintLines.length=0;
+  pendingInputTargets.length=0;
+  $('printFlowSvg').replaceChildren();
+  output.querySelectorAll('.output-flash').forEach(el=>el.classList.remove('output-flash'));
+  output.querySelectorAll('.input-flow-flash').forEach(el=>el.classList.remove('input-flow-flash'));
+}
+function renderPrintFlow(){
+  const svg=$('printFlowSvg');svg.replaceChildren();
+  const showPrint=$('printFlowToggle').checked;
+  const showInput=$('inputFlowToggle')?.checked;
+  if((!showPrint || !printConnections.length) && (!showInput || !inputConnections.length)) return;
+  const ns='http://www.w3.org/2000/svg';
+  svg.setAttribute('viewBox',`0 0 ${window.innerWidth} ${window.innerHeight}`);
+  svg.setAttribute('width',window.innerWidth);svg.setAttribute('height',window.innerHeight);
+  const defs=document.createElementNS(ns,'defs');
+  const markerPrint=document.createElementNS(ns,'marker');
+  markerPrint.setAttribute('id','printFlowEnd');markerPrint.setAttribute('markerWidth','9');markerPrint.setAttribute('markerHeight','9');
+  markerPrint.setAttribute('refX','8');markerPrint.setAttribute('refY','4');markerPrint.setAttribute('orient','auto');
+  const headPrint=document.createElementNS(ns,'path');headPrint.setAttribute('d','M0,0 L9,4 L0,8 Z');headPrint.setAttribute('fill','#70d1ff');
+  markerPrint.append(headPrint);defs.append(markerPrint);
+  const markerInput=document.createElementNS(ns,'marker');
+  markerInput.setAttribute('id','inputFlowEnd');markerInput.setAttribute('markerWidth','9');markerInput.setAttribute('markerHeight','9');
+  markerInput.setAttribute('refX','8');markerInput.setAttribute('refY','4');markerInput.setAttribute('orient','auto');
+  const headInput=document.createElementNS(ns,'path');headInput.setAttribute('d','M0,0 L9,4 L0,8 Z');headInput.setAttribute('fill','#5de3a9');
+  markerInput.append(headInput);defs.append(markerInput);svg.append(defs);
+  const editorBounds=$('codeArea').getBoundingClientRect(), outBounds=output.getBoundingClientRect();
+  if(showPrint){
+    for(const item of printConnections){
+      if(!item.element.isConnected)continue;
+      const start=codeLinePoint(item.line), r=item.element.getBoundingClientRect();
+      const end={x:outBounds.left+12,y:r.top+Math.min(13,r.height/2)};
+      if(start.y<editorBounds.top || start.y>editorBounds.bottom || end.y<outBounds.top || end.y>outBounds.bottom)continue;
+      if(start.x >= editorBounds.right-10 || start.x >= end.x-12)continue;
+      const fromX=start.x;
+      const path=document.createElementNS(ns,'path');
+      const mid=(fromX+end.x)/2;
+      path.setAttribute('d',`M ${fromX} ${start.y} C ${mid} ${start.y}, ${mid} ${end.y}, ${end.x} ${end.y}`);
+      path.setAttribute('stroke','#70d1ff');path.setAttribute('stroke-width','2');
+      path.setAttribute('fill','none');path.setAttribute('opacity','.8');path.setAttribute('marker-end','url(#printFlowEnd)');
+      svg.append(path);
+      item.element.classList.add('output-flash');
+    }
+  }
+  if(showInput){
+    for(const item of inputConnections){
+      if(!item.element.isConnected) continue;
+      const target=codeLinePoint(item.line), r=item.element.getBoundingClientRect();
+      // Point just after the final character of the input assignment,
+      // immediately before its variable value badge, without crossing code.
+      const start={x:outBounds.left+10, y:r.top+Math.min(13, r.height/2)};
+      const end={x:target.x-3, y:target.y};
+      if(end.y<editorBounds.top || end.y>editorBounds.bottom || start.y<outBounds.top || start.y>outBounds.bottom) continue;
+      if(end.x<editorBounds.left+20 || end.x>editorBounds.right-16 || start.x<=end.x+12) continue;
+      const path=document.createElementNS(ns,'path');
+      const mid=(start.x+end.x)/2;
+      path.setAttribute('d',`M ${start.x} ${start.y} C ${mid} ${start.y}, ${mid} ${end.y}, ${end.x} ${end.y}`);
+      const title=document.createElementNS(ns,'title');
+      title.textContent=`Input value stored in ${item.name} (line ${item.line})`;
+      path.append(title);
+      path.setAttribute('stroke','#5de3a9');path.setAttribute('stroke-width','2');
+      path.setAttribute('fill','none');path.setAttribute('opacity','.8');path.setAttribute('marker-end','url(#inputFlowEnd)');
+      svg.append(path);
+      item.element.classList.add('input-flow-flash');
+    }
+  }
+}
+function animatePrintFlow(line,el){
+  if(!Number.isInteger(line)||!el)return;
+  printConnections.push({line,element:el});
+  renderPrintFlow();
+}
+function animateInputFlow(meta,el){
+  if(!meta || !Number.isInteger(meta.line) || !el) return;
+  inputConnections.push({line:meta.line,name:meta.name,element:el});
+  renderPrintFlow();
+}
+
+function clearVisualsForCodeChange(){
+  if(editor.value===lastEditorText)return;
+  lastEditorText=editor.value;
+  inlineValues.clear();storedValues.clear();listValues.clear();
+  $('chipOverlay').replaceChildren();
+  $('listVisuals').replaceChildren();
+  $('variableMemoryList').replaceChildren();
+  $('variableMemory').open=false;
+  $('codeArea').classList.remove('highlight-target');
+  clearPrintFlow();
+}
+function recordStoredValue(meta,value){if(!meta)return;inlineValues.set(meta.name,{line:meta.line,value:JSON.stringify(value)});updateVariableLabels();storedValues.set(meta.name,value);const panel=$('variableMemory'),list=$('variableMemoryList');list.textContent='';for(const [name,val] of storedValues){const item=document.createElement('div');item.className='memory-item';const k=document.createElement('strong');k.textContent=name;item.append(k,document.createTextNode(' = '+JSON.stringify(val)));list.append(item)}}
+function updateVariableLabels(){
+  const layer=$('chipOverlay');
+  layer.querySelectorAll('.var-live-label').forEach(e=>e.remove());
+  if(!$('visualToggle').checked)return;
+  const area=$('codeArea');
+  const width=area.clientWidth;
+  for(const [name,entry] of inlineValues){
+    const sourceLine=sessionCode.split('\n')[entry.line-1]||'';
+    const label=document.createElement('div');label.className='var-live-label';
+    label.textContent=name+' = '+entry.value;
+    const approxX=16+sourceLine.length*charWidth()+17-editor.scrollLeft;
+    label.style.left=Math.min(Math.max(8,approxX),Math.max(8,width-180))+'px';
+    label.style.top=(16+(entry.line-1)*23-editor.scrollTop-2)+'px';
+    if(Number.parseFloat(label.style.top)<-35 || Number.parseFloat(label.style.top)>area.clientHeight)continue;
+    layer.append(label);
+  }
+}
+function renderListVisuals(){
+  const root=$('listVisuals');root.replaceChildren();
+  for(const [name,entry] of listValues){
+    const card=document.createElement('div');card.className='list-card';
+    const heading=document.createElement('div');heading.className='list-heading';heading.textContent='📋 '+name+' — '+entry.items.length+' item'+(entry.items.length===1?'':'s');card.append(heading);
+    const cells=document.createElement('div');cells.className='list-cells';
+    entry.items.forEach((value,index)=>{
+      const cell=document.createElement('div');cell.className='list-cell'+(index===entry.newIndex?' latest':'');
+      const idx=document.createElement('span');idx.className='list-index';idx.textContent='Index '+index;
+      const val=document.createElement('span');val.className='list-value';val.textContent=value;
+      cell.append(idx,val);cells.append(cell);
+    });
+    card.append(cells);
+    const note=document.createElement('div');note.className='list-description';
+    note.textContent=entry.newIndex>=0?'New item added at index '+entry.newIndex+'.':entry.items.length?'Current contents of the list':'This list is empty: []';
+    card.append(note);root.append(card);
+  }
+}
+function handleVariableTrace(data){
+  if(editor.value!==sessionCode)return;
+  if(!data || !Number.isInteger(data.line) || !data.name)return;
+  const old=inlineValues.get(data.name);
+  if(data.kind==='list' && Array.isArray(data.items)){
+    const previous=listValues.get(data.name);
+    const samePrefix=previous && previous.items.length < data.items.length && previous.items.every((value,i)=>data.items[i]===value);
+    listValues.set(data.name,{items:data.items.slice(),newIndex:samePrefix?data.items.length-1:-1});
+    renderListVisuals();
+  }
+  inlineValues.set(data.name,{value:data.value,line:data.line});
+  storedValues.set(data.name,data.value);
+  const panel=$('variableMemory'),list=$('variableMemoryList');list.textContent='';
+  for(const [name,value] of storedValues){const item=document.createElement('div');item.className='memory-item';const key=document.createElement('strong');key.textContent=name;item.append(key,document.createTextNode(' = '+value));list.append(item)}
+  updateVariableLabels();
+  if(!old || old.value!==data.value){const labels=[...$('chipOverlay').querySelectorAll('.var-live-label')];const last=labels.find(e=>e.textContent===data.name+' = '+data.value);if(last)last.classList.add('updated')}
+}
+function buildWorker(){if(bootTimeout)clearTimeout(bootTimeout);ready=false;$('run').disabled=true;setStatus('Loading Python…');const src=workerSource.replace('__BRIDGE__',JSON.stringify(pythonBridge));const url=URL.createObjectURL(new Blob([src],{type:'text/javascript'}));try{worker=new Worker(url)}catch(e){URL.revokeObjectURL(url);setStatus('Browser blocked Python','bad');append('\nUnable to start the Python worker in this browser: '+e.message+'\nOpen this HTML file in Chrome or Edge rather than a file preview.\n','out-error');return}URL.revokeObjectURL(url);bootTimeout=setTimeout(()=>{if(!ready){setStatus('Python loading slowly','bad');append('\nPython is taking longer than expected. Check internet access or try opening the file in Chrome or Edge. The school network may block the Python download sites.\n','out-error')}},45000);worker.onmessage=({data})=>{if(data.type==='loadingSource'){setStatus('Loading Python from '+data.name+'…');}else if(data.type==='ready'){clearTimeout(bootTimeout);ready=true;$('run').disabled=false;setStatus('Python ready','ready');if(!running){output.textContent='';append('Python is ready. Write code and click Run.\n','out-info')}}else if(data.type==='bootError'){clearTimeout(bootTimeout);setStatus('Python could not load','bad');append('\nCould not load Python. The browser could not download Python from either source. Your school may need to allow cdn.jsdelivr.net and unpkg.com, including their JavaScript, WASM and Python files.\n\nDetails:\n'+data.text,'out-error')}else if(data.type==='output'){const cls=data.kind==='error'?'out-error':data.kind==='input'?'out-input':'';const el=append(data.text,cls);if(!cls && pendingPrintLines.length)animatePrintFlow(pendingPrintLines.shift(),el); if(cls==='out-input' && /\n$/.test(data.text) && pendingInputTargets.length) animateInputFlow(pendingInputTargets.shift(), el)}else if(data.type==='outputTrace'){if(Number.isInteger(data.data?.line))pendingPrintLines.push(data.data.line)}else if(data.type==='variableTrace'){handleVariableTrace(data.data)}else if(data.type==='needInput'){waitingForInput=true;showInputPrompt(data.prompt)}else if(data.type==='diagnostic'){try{showDiagnostic(data.data)}catch(err){append('\nPython error: '+(data.data?.name||'Error')+': '+(data.data?.message||'Unknown issue')+'\n','out-error');console.error('Unable to display friendly error',err)}}else if(data.type==='error'){append('\nRuntime error: '+data.text+'\n','out-error');finish()}else if(data.type==='done'){if(!waitingForInput)finish()}};worker.onerror=(e)=>{clearTimeout(bootTimeout);setStatus('Python failed to start','bad');append('\nWorker error: '+e.message+'\n','out-error');finish()}}
+
+function editDistance(a,b){
+ const d=Array.from({length:a.length+1},()=>Array(b.length+1).fill(0));
+ for(let i=0;i<=a.length;i++)d[i][0]=i;
+ for(let j=0;j<=b.length;j++)d[0][j]=j;
+ for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+ return d[a.length][b.length];
+}
+// Recognise one unclosed bracket on a single line, ignoring strings and comments.
+// For block headers put the missing bracket BEFORE the colon, not after it.
+function simpleMissingBracket(line){
+ const stack=[]; let quote=null,escaped=false;
+ for(let i=0;i<line.length;i++){
+   const c=line[i];
+   if(quote){if(escaped){escaped=false;continue}if(c==='\\'){escaped=true;continue}if(c===quote)quote=null;continue}
+   if(c==='#')break;
+   if(c==='"'||c==="'"){quote=c;continue}
+   if('([{'.includes(c))stack.push(c);
+   else if(')]}'.includes(c)){
+     if(!stack.length||{')':'(',']':'[','}':'{'}[c]!==stack.pop())return null;
+   }
+ }
+ if(quote||stack.length!==1)return null;
+ const bracket={'(':')','[':']','{':'}'}[stack[0]];
+ const m=line.match(/^(.*?)(\s*:\s*)$/);
+ const replacement=m?m[1].replace(/\s+$/,'')+bracket+m[2]:line+bracket;
+ return {bracket,replacement};
+}
+// Gather names introduced before the error, rather than guessing from every word.
+// This is intentionally conservative: it supports common classroom assignments,
+// loop variables, function parameters, and imports without pretending to parse Python fully.
+function knownNames(lines, errorLine){
+ const found=new Map();
+ function add(name, line){if(/^[A-Za-z_]\w*$/.test(name) && !found.has(name))found.set(name,line)}
+ for(let i=0;i<Math.min(errorLine-1,lines.length);i++){
+   const raw=lines[i];
+   const line=raw.replace(/#[^'"\n]*$/,'');
+   let m;
+   if((m=line.match(/^\s*(?:async\s+)?for\s+(.+?)\s+in\b/))){
+     for(const name of m[1].split(','))add(name.trim().replace(/[()\[\]]/g,''),i+1);
+   }
+   if((m=line.match(/^\s*(?:async\s+)?def\s+(\w+)\s*\(([^)]*)\)/))){
+     add(m[1],i+1);
+     for(const param of m[2].split(',')){
+       const name=param.trim().replace(/^\*{1,2}/,'').split(/\s*[:=]/)[0];add(name,i+1);
+     }
+   }
+   if((m=line.match(/^\s*class\s+(\w+)\b/)))add(m[1],i+1);
+   if((m=line.match(/^\s*(?:from\s+\S+\s+)?import\s+(.+)$/))){
+     for(const item of m[1].split(',')){
+       const parts=item.trim().split(/\s+as\s+/);add(parts[1]||parts[0].split('.')[0],i+1);
+     }
+   }
+   if((m=line.match(/^\s*(?:global\s+|nonlocal\s+)?([A-Za-z_]\w*)\s*(?::\s*\w+\s*)?(?:=(?!=)|\+=|-=|\*=|\/=|%=)/)))add(m[1],i+1);
+   if((m=line.match(/^\s*with\s+.+?\s+as\s+(\w+)\s*:/)))add(m[1],i+1);
+   if((m=line.match(/^\s*except\s+.+?\s+as\s+(\w+)\s*:/)))add(m[1],i+1);
+ }
+ return found;
+}
+function variableSuggestions(name, lines, n){
+ const choices=[...knownNames(lines,n).entries()]
+   .filter(([candidate])=>candidate!==name)
+   .map(([candidate,created])=>({name:candidate,created,distance:editDistance(name,candidate)}))
+   .filter(item=>item.distance>0 && item.distance <= (name.length<=4 ? 1 : name.length<=8 ? 2 : 3))
+   .sort((a,b)=>a.distance-b.distance || a.name.localeCompare(b.name));
+ if(!choices.length)return [];
+ // A best match that is clearly ahead of all other candidates can be offered.
+ return choices.slice(0,4);
+}
+function replaceNameOnce(line,name,replacement){
+ const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ const re=new RegExp('(^|[^\\w])('+escaped+')(?=$|[^\\w])','g');
+ // Only edit when the misspelling is found exactly once on the error line.
+ const matches=[...line.matchAll(re)];if(matches.length!==1)return null;
+ const match=matches[0],start=match.index+match[1].length;
+ return line.slice(0,start)+replacement+line.slice(start+name.length);
+}
+function diagnosticAdvice(d){
+ const source=editor.value.split('\n'), n=Number(d.line)||0, line=source[n-1]||'',msg=d.message||'', type=d.name||'';
+ let title='There is a problem with your code', advice='Check the highlighted line carefully and compare it with a working example in Helping Hand.', fix=null;
+ const makeFix=(updated)=>{fix={line:n,original:line,replacement:updated}};
+ if(type==='SyntaxError' || type==='TabError' || type==='IndentationError'){
+   // A name such as `num 1 = input()` is two tokens, not a valid Python variable.
+   // Only suggest an edit for a simple two-part assignment target.
+   const spacedName = n && /invalid syntax/i.test(msg)
+     ? line.match(/^(\s*)([A-Za-z_]\w*)[ \t]+([A-Za-z_]\w*|\d+)([ \t]*=(?!=)[ \t]*.+)$/)
+     : null;
+   // A backwards bracket in a common classroom int(input(...)) statement.
+   // Correct only the exact, recognisable shape: int)input("prompt")
+   const backwardsInput = n && /unmatched ['"]\)['"]|invalid syntax/i.test(msg)
+     ? line.match(/^(\s*\w+\s*=\s*)int\)\s*input\s*\((\s*(['"])(?:\\.|(?!\3).)*\3\s*)\)\s*$/)
+     : null;
+   if(backwardsInput){
+     title='A bracket is facing the wrong way';
+     advice='You have written int)input(...) instead of int(input(...)). Opening brackets ( must come before the value, and closing brackets ) come after it. int(input(...)) needs two closing brackets.';
+     makeFix(backwardsInput[1]+'int(input('+backwardsInput[2]+'))');
+   }else if(n && /unmatched ['"]\)['"]/i.test(msg)){
+     title='There is an extra or incorrectly placed closing bracket';
+     advice='Python has found a closing bracket ) without a matching opening bracket (. Check whether a bracket faces the wrong way, or whether you have added an extra ). For int(input(...)), both opening brackets must appear before the prompt.';
+   }else
+   if(spacedName){
+     const [,indent,first,second,rest] = spacedName;
+     title='A variable name cannot contain spaces';
+     advice=`Python reads '${first} ${second}' as two separate parts. Variable names must be one word. You could use '${first}_${second}' or '${first}${second}'. Click Apply suggested fix to use the underscore version.`;
+     makeFix(indent+first+'_'+second+rest);
+   }else{
+   // Python can report an unclosed range() as plain 'invalid syntax' when a colon follows it.
+   const missing=(n && /(?:invalid syntax|was never closed|unexpected EOF)/i.test(msg)) ? simpleMissingBracket(line) : null;
+   if(missing){
+     title='A closing bracket is missing';
+     advice=`There is an opening bracket without a matching ${missing.bracket}. On a for loop, the closing bracket must come before the colon (:).`;
+     makeFix(missing.replacement);
+   }else
+   if(/was never closed|unexpected EOF while parsing|unexpected EOF/i.test(msg)){
+     const open=msg.match(/'([([{])' was never closed/), pair={'(':')','[':']','{':'}'}, bracket=open?pair[open[1]]:')';
+     title='A closing bracket is missing'; advice=`Python has found a bracket that has not been closed. Check where you opened it and add a matching ${bracket} at the right place.`;
+     if(n && !/[#]/.test(line) && /[(\[{]/.test(line))makeFix(line+bracket);
+   }else if(/unterminated string literal|EOL while scanning string literal/i.test(msg)){
+     title='A string is missing its closing quote'; advice='Text inside a string must start and finish with matching quotation marks, such as "Hello".';
+     const quotes=line.match(/(?<!\\)["']/g)||[];
+     if(n && quotes.length%2===1 && !line.includes('#'))makeFix(line+quotes[quotes.length-1]);
+   }else if(/expected ':'/i.test(msg)){
+     title='You might have missed a colon (:)'; advice='An if, for, while, def or else line normally needs a colon at the end.';
+     if(n && /^\s*(if|elif|else|for|while|def|class|try|except|finally)\b/.test(line) && !line.trimEnd().endsWith(':'))makeFix(line+':');
+   }else if(/expected an indented block/i.test(msg)){
+     title='Python needs an indented line';
+     advice='The code inside an if statement, loop or function must be indented. Add four spaces (one level) compared with the line that starts the block.';
+     // Only offer an automatic fix when the preceding non-empty line starts a block.
+     // Compare indentation levels so this also works for blocks nested inside other blocks.
+     if(n && line.trim()){
+       let previous=n-2;
+       while(previous>=0 && (!source[previous].trim() || source[previous].trimStart().startsWith('#')))previous--;
+       if(previous>=0){
+         const above=source[previous];
+         const base=(above.match(/^[ ]*/)||[''])[0].length;
+         const current=(line.match(/^[ ]*/)||[''])[0].length;
+         if(above.trimEnd().endsWith(':') && current<=base && !/^\s*\t/.test(line) && !/^\s*\t/.test(above)){
+           makeFix(' '.repeat(base+4-current)+line);
+         }
+       }
+     }
+   }else if(/unexpected indent/i.test(msg)){
+     title='This line is indented too far';advice='Check the spaces at the start of the line. Only indent code that belongs inside a block.';
+   }else if(/inconsistent use of tabs and spaces/i.test(msg)){
+     title='Tabs and spaces are mixed';advice='Use four spaces per indentation level. Avoid mixing Tab characters and spaces.';
+   }else if(/invalid syntax/i.test(msg)){
+     if(/\bprint\s*\(/.test(line) && /["'][^"']+["']\s+(?:["']|[A-Za-z_]\w*)/.test(line)){
+       title='You may have missed a comma';advice='When printing two separate strings, put a comma between them, for example: print("Hello", "world").';
+       makeFix(line.replace(/(["'])\s+(?=["']|[A-Za-z_]\w*)/,'$1, '));
+     }else{title='Python cannot understand this line';advice='Look for a missing comma, bracket, colon, operator or quotation mark. Python sometimes points just after the real mistake.';}
+   }
+  }
+ } else if(type==='NameError'){
+   const match=msg.match(/name ['"]([^'"]+)['"] is not defined/), name=match?.[1];
+   title=name?`Python doesn't recognise '${name}'`:'Python does not recognise this name';
+   advice='Python cannot find a variable or function with this exact name. Check spelling, capital letters, and whether it was created before this line.';
+   if(name && n){
+     const builtin=['print','input','range','len','int','float','str','sum','max','min','list'];
+     const matches=variableSuggestions(name,source,n);
+     const builtins=builtin.map(v=>({name:v,created:null,distance:editDistance(name,v)}))
+       .filter(v=>v.distance>0 && v.distance<=(name.length<=4?1:2));
+     const candidates=[...matches,...builtins].sort((a,b)=>a.distance-b.distance||a.name.localeCompare(b.name));
+     const nearest=candidates[0];
+     if(nearest){
+       const ties=candidates.filter(v=>v.distance===nearest.distance);
+       if(ties.length===1 && (!candidates[1] || candidates[1].distance>nearest.distance)){
+         title=`Did you mean '${nearest.name}'?`;
+         advice=`Python cannot find '${name}'. ${nearest.created?`You created a variable called '${nearest.name}' on line ${nearest.created}.`:`'${nearest.name}' is a Python built-in function.`} Check whether that is the name you intended to use.`;
+         const corrected=replaceNameOnce(line,name,nearest.name);
+         if(corrected!==null)makeFix(corrected);
+       }else{
+         title=`Check the spelling of '${name}'`;
+         advice=`Python doesn't recognise '${name}'. Similar names are ${ties.slice(0,4).map(v=>`'${v.name}'${v.created?` (line ${v.created})`:''}`).join(', ')}. Check which one you intended to use; no automatic correction is offered because there is more than one possibility.`;
+       }
+     }
+   }
+ }else if(type==='TypeError'){
+   title='Two values are being used in an incompatible way';
+   advice=/concatenate str.*(?:int|float)|can only concatenate str/i.test(msg)?'You cannot join text and a number with +. Try using a comma in print(), or turn the number into text using str().':'Check the types of values you are combining. For example, a number and a string are not always interchangeable.';
+ }else if(type==='ValueError'){
+   title='A value is not in the format Python expected';advice=/invalid literal for int/i.test(msg)?'int() needs a whole number, such as 12. Check that the input does not contain letters or decimals.':'Check the value being converted or used. It may be outside the expected range or in the wrong format.';
+ }else if(type==='ZeroDivisionError'){
+   title='You cannot divide by zero';advice='Check the number after / or %. If it comes from a variable or input, make sure it is not zero.';
+ }else if(type==='IndexError'){
+   title='This list position does not exist';advice='List positions start from 0. If your list has 3 items, the valid positions are 0, 1 and 2.';
+ }else if(type==='EOFError'){
+   title='Your program needs another input';advice='Add another answer to the Program input box on the right. Put each answer on its own line, then run again.';
+ }else if(type==='ModuleNotFoundError'){
+   title='Python cannot find that module';advice='Check the module name. Some libraries are not available in this browser-based version of Python.';
+ }
+ return {title,advice,fix,n};
+}
+function jumpToLine(n){
+ const lines=editor.value.split('\n');if(n<1||n>lines.length)return;
+ const start=lines.slice(0,n-1).reduce((v,line)=>v+line.length+1,0);
+ editor.focus();editor.setSelectionRange(start,start+lines[n-1].length);
+ editor.scrollTop=Math.max(0,(n-3)*23);
+}
+function showDiagnostic(d){
+ const info=diagnosticAdvice(d), card=document.createElement('section');card.className='error-card';
+ const header=document.createElement('h3');header.textContent='🔎 '+info.title;card.append(header);
+ if(info.n){const line=document.createElement('div');line.className='error-line';line.textContent='Likely problem near line '+info.n;card.append(line)}
+ const help=document.createElement('p');help.textContent=info.advice;card.append(help);
+ const actions=document.createElement('div');actions.className='error-actions';
+ if(info.n){const go=document.createElement('button');go.textContent='Show me the line';go.onclick=()=>jumpToLine(info.n);actions.append(go)}
+ if(info.fix){const btn=document.createElement('button');btn.textContent=(d.name==='NameError'?'Use suggested variable':'Apply suggested fix');btn.onclick=()=>{
+   const parts=editor.value.split('\n');if(parts[info.fix.line-1]!==info.fix.original){alert('Your code has changed since the error. Run the program again to get a fresh suggestion.');return}
+   parts[info.fix.line-1]=info.fix.replacement;editor.value=parts.join('\n');changed();jumpToLine(info.fix.line);btn.disabled=true;btn.textContent='Fix added — run again';
+ };actions.append(btn)}
+ card.append(actions);
+ const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='See original Python error';const pre=document.createElement('pre');pre.textContent=d.raw||d.name+': '+d.message;details.append(summary,pre);card.append(details);
+ output.append(card);output.scrollTop=output.scrollHeight;
+}
+
+
+function getInputTargets(code){
+  const targets=[];
+  const lines=code.replace(/\r/g,'').split('\n');
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(!/\binput\s*\(/.test(line)) continue;
+    const eq=line.indexOf('=');
+    if(eq===-1) continue;
+    const left=line.slice(0,eq).trim();
+    if(!/^[A-Za-z_]\w*$/.test(left)) continue;
+    const start=line.indexOf(left);
+    targets.push({name:left,line:i+1,column:start+1});
+  }
+  return targets;
+}
+function charWidth(){
+  if(charWidth._cache) return charWidth._cache;
+  const probe=document.createElement('span');
+  probe.style.position='absolute';probe.style.visibility='hidden';probe.style.whiteSpace='pre';
+  probe.style.font='14px/23px ui-monospace,SFMono-Regular,Consolas,monospace';
+  probe.textContent='0000000000';document.body.append(probe);
+  charWidth._cache=probe.getBoundingClientRect().width/10;probe.remove();
+  return charWidth._cache;
+}
+function codeTargetRect(meta){
+  if(!meta) return null;
+  const codeArea=$('codeArea');
+  const areaRect=codeArea.getBoundingClientRect();
+  const x=areaRect.left + 16 + (meta.column-1)*charWidth() - editor.scrollLeft;
+  const y=areaRect.top + 16 + (meta.line-1)*23 - editor.scrollTop;
+  return {left:x, top:y, areaRect};
+}
+function animateValueToVariable(value, meta, done, fromRect){
+  if(!meta){done();return;}
+  // Capture the input position BEFORE removing the prompt from the page.
+  const target=codeTargetRect(meta);
+  if(!fromRect || !target){done();return;}
+
+  const codeArea=$('codeArea');
+  codeArea.classList.add('highlight-target');
+
+  const chip=document.createElement('div');
+  chip.className='flying-chip';
+  chip.textContent=value===''?'(empty)':value;
+  document.body.append(chip);
+  chip.style.left=(fromRect.left+10)+'px';
+  chip.style.top=(fromRect.top+6)+'px';
+
+  const landing=document.createElement('div');
+  landing.className='landing-chip';
+  landing.textContent=meta.name+' = '+(value===''?'""':JSON.stringify(value));
+  $('chipOverlay').append(landing);
+  landing.style.left=Math.max(6, target.left-target.areaRect.left)+'px';
+  landing.style.top=Math.max(4, target.top-target.areaRect.top-4)+'px';
+  landing.style.opacity='0';
+  landing.style.transform='scale(.92)';
+  landing.style.transition='opacity .25s ease, transform .25s ease';
+
+  const movement=chip.animate([
+    {transform:'translate(0,0) scale(1)', opacity:1},
+    {transform:`translate(${target.left-fromRect.left}px, ${target.top-fromRect.top}px) scale(.86)`, opacity:.9}
+  ], {duration:700, easing:'cubic-bezier(.2,.8,.2,1)', fill:'forwards'});
+
+  setTimeout(()=>{
+    chip.remove();
+    landing.style.opacity='1';
+    landing.style.transform='scale(1)';
+    setTimeout(()=>{
+      landing.style.transition='opacity .4s ease';
+      landing.style.opacity='0';
+      setTimeout(()=>{landing.remove();codeArea.classList.remove('highlight-target');done();},420);
+    },900);
+  },720);
+}
+
+function showInputPrompt(promptText){
+  running=false;
+  const targets=getInputTargets(sessionCode);
+  currentInputMeta=targets[sessionAnswers.length]||null;
+  $('stop').disabled=false;
+  $('run').disabled=true;
+  $('runTime').textContent='Waiting for input…';
+  setStatus('Waiting for an answer…');
+  const holder=document.createElement('div');holder.className='live-input-panel';
+  const title=document.createElement('label');title.textContent=promptText||'Enter a value:'; if(currentInputMeta){const t=document.createElement('span');t.className='variable-target-label';t.textContent='Stored in: '+currentInputMeta.name;title.append(' ',t);}
+  const field=document.createElement('input');field.type='text';field.autocomplete='off';field.placeholder='Type your answer here';field.setAttribute('aria-label',promptText||'Program input');
+  const send=document.createElement('button');send.className='primary';send.textContent='Enter ↵';
+  const submit=()=>{
+    if(!waitingForInput)return;
+    const answer=field.value;
+    const fromRect=field.getBoundingClientRect();
+    const variable=currentInputMeta;
+    sessionAnswers.push(answer);
+    waitingForInput=false;
+    recordStoredValue(variable,answer);
+    holder.remove();
+    animateValueToVariable(answer,variable,()=>{ runSession(); },fromRect);
+  };
+  send.onclick=submit;field.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
+  holder.append(title,field,send);output.append(holder);output.scrollTop=output.scrollHeight;field.focus();
+}
+function finish(){waitingForInput=false;running=false;$('stop').disabled=true;$('run').disabled=!ready;$('runTime').textContent='Finished in '+((performance.now()-started)/1000).toFixed(2)+'s';setStatus('Python ready','ready')}
+function runSession(){
+  if(!ready)return;
+  running=true;output.textContent='';clearPrintFlow();
+  // Interactive input replays the program after every answer. Rebuild the
+  // input-to-variable line mapping for each replay, otherwise the old reset
+  // empties the queue and no green arrows can be created.
+  pendingInputTargets=getInputTargets(sessionCode).slice();
+  $('runTime').textContent='Running…';$('run').disabled=true;$('stop').disabled=false;setStatus('Running…');
+  worker.postMessage({type:'run',code:sessionCode,answers:sessionAnswers});
+}
+function run(){
+  if(!ready||running||waitingForInput)return;
+  started=performance.now();normaliseEditorQuotes();sessionCode=editor.value;inlineValues.clear();updateVariableLabels();storedValues.clear();listValues.clear();$('listVisuals').replaceChildren();$('variableMemoryList').textContent='';$('variableMemory').open=false;clearPrintFlow();
+  const text=$('inputs').value;
+  sessionAnswers=text===''?[]:text.replace(/\r/g,'').split('\n');
+  runSession();
+}
+$('run').onclick=run;$('stop').onclick=()=>{if(!running&&!waitingForInput)return;waitingForInput=false;worker.terminate();running=false;ready=false;$('stop').disabled=true;$('run').disabled=true;clearPrintFlow();append('\n■ Program stopped by user.\n','out-error');$('runTime').textContent='Stopped';buildWorker()};$('clear').onclick=()=>{if(waitingForInput)return;output.textContent='';clearPrintFlow();$('runTime').textContent='Output cleared'};
+$('new').onclick=()=>{if(!confirm('Start a new file? Your current code will be replaced.'))return;editor.value='';setFileName('main.py');lastNamedCode=null;try{localStorage.removeItem(namedCodeStorage)}catch{}changed();editor.focus()};$('examples').onchange=e=>{const key=e.target.value;if(!key)return;const option=e.target.options[e.target.selectedIndex];$('helpTitle').textContent=option.textContent;$('helpCode').textContent=samples[key];$('helpPanel').classList.add('visible');e.target.value='';};$('helpClose').onclick=()=>{$('helpPanel').classList.remove('visible');};
+$('open').onclick=()=>$('upload').click();$('upload').onchange=async(e)=>{const f=e.target.files?.[0];if(!f)return;editor.value=await f.text();setFileName(f.name);lastNamedCode=editor.value;try{localStorage.setItem(namedCodeStorage,lastNamedCode)}catch{}changed();e.target.value=''};
+$('visualToggle').onchange=()=>{document.body.classList.toggle('visual-off',!$('visualToggle').checked);updateVariableLabels();};
+$('printFlowToggle').onchange=()=>{document.body.classList.toggle('print-off',!$('printFlowToggle').checked);renderPrintFlow();};
+$('inputFlowToggle').onchange=()=>{renderPrintFlow();};
+window.addEventListener('resize',()=>{updateVariableLabels();renderPrintFlow();});
+editor.addEventListener('scroll',renderPrintFlow);output.addEventListener('scroll',renderPrintFlow);
+// Suggest a descriptive name from the code, without internet access.
+// This is only a starting point: pupils can always change it before saving.
+function suggestPythonFileName(code){
+  const source=code.replace(/\r/g,'');
+  const nonblank=source.split('\n').map(x=>x.trim()).filter(x=>x&&!x.startsWith('#'));
+  if(!nonblank.length)return 'MyPythonProgram.py';
+  const lower=source.toLowerCase();
+  const has=re=>re.test(source);
+  const outputStrings=[...source.matchAll(/\bprint\s*\(\s*(["'])([^\n"']{3,70})\1/g)].map(m=>m[2].toLowerCase());
+  const prompts=[...source.matchAll(/\binput\s*\(\s*(["'])([^\n"']{3,70})\1/g)].map(m=>m[2].toLowerCase());
+  const words=outputStrings.concat(prompts).join(' ');
+  const vars=[...source.matchAll(/^\s*([A-Za-z_]\w*)\s*=(?!=)/gm)].map(m=>m[1].toLowerCase());
+  const haveWord=re=>re.test(words)||vars.some(v=>re.test(v));
+  let base;
+  if(haveWord(/quiz|question|correct answer/))base='QuizProgram';
+  else if(haveWord(/password|login|username/))base='LoginChecker';
+  else if(haveWord(/temperature|celsius|fahrenheit/))base='TemperatureConverter';
+  else if(haveWord(/area|perimeter|radius|circumference/))base='ShapeCalculator';
+  else if(haveWord(/average|mean/))base='AverageCalculator';
+  else if(haveWord(/total|sum|add|first number|second number/) && has(/\s\+\s/))base='AdditionCalculator';
+  else if(haveWord(/grade|mark|score|result/))base='GradeCalculator';
+  else if(haveWord(/guess|secret number|random number/))base='NumberGuessingGame';
+  else if(haveWord(/age|old are you/) && has(/\bif\b/))base='AgeDecision';
+  else if(has(/\b(?:open\s*\(|with\s+open\s*\()/))base='FileHandling';
+  else if(has(/\bdef\s+[A-Za-z_]\w*\s*\(/)){
+    const fn=source.match(/\bdef\s+([A-Za-z_]\w*)\s*\(/)[1];
+    const pretty=fn.split('_').filter(Boolean).map(w=>w[0].toUpperCase()+w.slice(1)).join('');
+    base=pretty && pretty!=='Main' ? pretty+'Function':'FunctionsPractice';
+  }
+  else if(has(/\.append\s*\(/))base='BuildingAList';
+  else if(has(/\[[^\]\n]*\]/) && has(/\bfor\b/))base='ListIteration';
+  else if(has(/\[[^\]\n]*\]/))base='ListsPractice';
+  else if(has(/\bwhile\b/))base='WhileLoopPractice';
+  else if(has(/\bfor\b/))base='ForLoopPractice';
+  else if(has(/\bif\b/))base='IfStatements';
+  else if(has(/\binput\s*\(/))base='InputAndVariables';
+  else if(has(/\bprint\s*\(/))base='PrintStatements';
+  else base='MyPythonProgram';
+  return base+'.py';
+}
+// Native Save As dialog lets pupils choose their Python folder and the filename.
+// Browsers without the File System Access API fall back to a normal download.
+$('save').onclick=async()=>{
+  const suggested=suggestPythonFileName(editor.value);
+  const keepExisting=currentFileName.toLowerCase()!=='main.py' && lastNamedCode!==null && editor.value===lastNamedCode;
+  const defaultName=keepExisting?currentFileName:suggested;
+  let finalName;
+  if(typeof window.showSaveFilePicker==='function'){
+    try{
+      const handle=await window.showSaveFilePicker({
+        suggestedName:defaultName,
+        types:[{description:'Python programs',accept:{'text/x-python':['.py']}}],
+        excludeAcceptAllOption:false
+      });
+      const writable=await handle.createWritable();
+      await writable.write(editor.value);
+      await writable.close();
+      finalName=handle.name;
+    }catch(err){
+      // Cancelling Save As should not download anything or change the filename.
+      if(err?.name==='AbortError')return;
+      // Some school-managed browsers disallow writing through the picker.
+      alert('This browser could not save into the chosen folder. A normal download will be used instead. To choose the folder for downloads, turn on "Ask where to save each file" in Chrome or Edge settings.');
+    }
+  }
+  if(!finalName){
+    const chosen=prompt('Filename suggestion (you can change it):',defaultName);
+    if(chosen===null)return;
+    if(!chosen.trim()){alert('Please enter a filename.');return;}
+    finalName=chosen.trim().replace(/\.py$/i,'')+'.py';
+    const blob=new Blob([editor.value],{type:'text/x-python;charset=utf-8'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');
+    link.href=url;link.download=finalName;document.body.append(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  setFileName(finalName);
+  lastNamedCode=editor.value;
+  try{localStorage.setItem(namedCodeStorage,lastNamedCode)}catch{}
+};
+changed();buildWorker();
+</script>
+</body></html>
