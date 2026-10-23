@@ -200,10 +200,11 @@ async function boot(){
 }
 boot();
 onmessage=async({data})=>{if(data.type!=='run'||!py)return;
-const code=data.code,answers=data.answers;
+const code=data.code,answers=data.answers,seed=data.seed;
 try{
   py.globals.set('__lab_code',code);
   py.globals.set('__lab_inputs',answers);
+  py.globals.set('__lab_seed',seed);
   py.globals.set('__lab_write',(chunk,kind)=>postMessage(String(kind)==='needInput'?{type:'needInput',prompt:String(chunk)}:{type:'output',text:String(chunk),kind:String(kind)}));
   py.globals.set('__lab_trace',(json)=>postMessage({type:'variableTrace',data:JSON.parse(String(json))}));
   py.globals.set('__lab_output_trace',(json)=>postMessage({type:'outputTrace',data:JSON.parse(String(json))}));
@@ -214,7 +215,9 @@ try{
 };`;
 // Replace the token with Python setup; defined separately to keep the worker readable.
 const pythonBridge=String.raw`
-import sys, builtins, traceback, json, ast
+import sys, builtins, traceback, json, ast, random as _lab_random
+# A single Run session must replay the SAME random sequence after each input().
+_lab_random.seed(int(__lab_seed))
 lab_write = __lab_write  # Avoid Python name-mangling inside the _Stream class.
 class _Stream:
     def __init__(self, kind): self.kind = kind
@@ -328,6 +331,7 @@ finally:
 `;
 let worker,ready=false,running=false,started=0,bootTimeout=null;
 let waitingForInput=false,sessionAnswers=[],sessionCode='';
+let sessionRandomSeed=0;
 let currentInputMeta=null;
 const storedValues=new Map();
 const listValues=new Map();
@@ -817,11 +821,14 @@ function runSession(){
   // empties the queue and no green arrows can be created.
   pendingInputTargets=getInputTargets(sessionCode).slice();
   $('runTime').textContent='Running…';$('run').disabled=true;$('stop').disabled=false;setStatus('Running…');
-  worker.postMessage({type:'run',code:sessionCode,answers:sessionAnswers});
+  worker.postMessage({type:'run',code:sessionCode,answers:sessionAnswers,seed:sessionRandomSeed});
 }
 function run(){
   if(!ready||running||waitingForInput)return;
-  started=performance.now();normaliseEditorQuotes();sessionCode=editor.value;inlineValues.clear();updateVariableLabels();storedValues.clear();listValues.clear();$('listVisuals').replaceChildren();$('variableMemoryList').textContent='';$('variableMemory').open=false;clearPrintFlow();
+  started=performance.now();
+  // Set once per click on Run, not during internal replays for input().
+  sessionRandomSeed=Math.floor(Math.random()*4294967296);
+  normaliseEditorQuotes();sessionCode=editor.value;inlineValues.clear();updateVariableLabels();storedValues.clear();listValues.clear();$('listVisuals').replaceChildren();$('variableMemoryList').textContent='';$('variableMemory').open=false;clearPrintFlow();
   const text=$('inputs').value;
   sessionAnswers=text===''?[]:text.replace(/\r/g,'').split('\n');
   runSession();
